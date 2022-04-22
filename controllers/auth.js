@@ -68,46 +68,29 @@ router.put('/newpass', async(req, res) =>{
         return catchErr(err, res, "Something went wrong with that request")
     }
 })
+
 router.delete('/', async (req, res)=>{
-    const token = req.headers["x-access-token"]
-        try{
-            const config = {
-                headers: { "x-access-token": req.headers["x-access-token"] }
-            };
+    try{
+        const possibleUser = await User.findById(req.user._id)
+        const okpass = comparePassword(req.body.password, possibleUser.password)
+        if(okpass){
             const deleted = await axios.delete("http://localhost:3003/micro/", {
                 headers: { "x-access-token": req.headers["x-access-token"] }})
             if(deleted.data.success){
                 await User.findByIdAndDelete(req.user._id) //to delete user by their passport 
                 return res.send({
                     success: true,
-                    data: "User Deleted"
+                    data: 'you is gone from my dbs'
                 })
+            }else{
+                return catchErr(deleted.data, res, "deleted")
             }
-            return catchErr(deleted.data, res, "failed to delete user")
+        }
+        return catchErr(okpass, res, "when you remember your password then delete your profile lol")
     }catch(err){
         return catchErr(err, res, "Something went wrong with that request")
     }
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 module.exports = router;
