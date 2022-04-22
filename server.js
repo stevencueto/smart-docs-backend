@@ -1,4 +1,5 @@
 require('dotenv').config()
+
 const express = require('express')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
@@ -41,7 +42,6 @@ app.use(express.json())
 //require router
 const authRouter = require('./controllers/auth')
 app.use('/auth', authRouter)
-
 
 
 

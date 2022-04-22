@@ -1,9 +1,13 @@
 const bcrypt = require('bcrypt');
 
 const hashedPassword = (password) => {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-    return hash
+  bcrypt.genSalt(10, function(err, salt) {
+    bcrypt.hash(password, salt, function(err, hash) {
+        password = hash
+    });
+  });
+  console.log(password)
+  return password
 }
 
 const comparePassword = (typedPass, hashPass) => { //takes 2 params, the typed password and the hashed one or salted idk

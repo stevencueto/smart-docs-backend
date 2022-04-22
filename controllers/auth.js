@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/User')
-const Docs = require('../models/Docs')
 const catchErr = require('../middleware/serverError')
 const { hashedPassword, comparePassword} = require('../middleware/passwordHasser')
 const userExists = require('../middleware/userExists')
@@ -9,22 +8,30 @@ const jwt = require('jsonwebtoken')
 
 
 router.post('/register', userExists,  async (req, res) => {
+    console.log(req.body)
     req.body.password = hashedPassword(req.body.password)
     try{
         const newUser = await User.create(req.body)
         console.log(newUser)
         const token = jwt.sign(
             {
+                _id: newUser._id,
                 username: newUser.username,
                 email: newUser.email,
-                docs: newUser.favoriteMovies,
-                _id: newUser._id
+                _id: newUser._id,
+                docs: possibleUser.docs,
             },
             process.env.TOKEN_GENERATOR
         )
+        const user ={
+            username: newUser.username,
+            email: newUser.email,
+            _id: newUser._id,
+            docs: possibleUser.docs,
+        }
         return res.send({
             success: true,
-            data: token
+            data: {token, user}
         })
     }catch(err){
         catchErr(err, res, 'Interal Server Error')
@@ -32,7 +39,6 @@ router.post('/register', userExists,  async (req, res) => {
 })
 
 router.post( '/login', async(req, res) =>{
-    console.log(req.body)
     try{
     const possibleUser = await User.findOne({email: req.body.email})
     if(possibleUser){
@@ -93,7 +99,6 @@ router.delete('/:id', async (req, res)=>{
 	const id = decoded._id
     if(!id) return catchErr(id, res, "User not found")
     try{
-        await Docs.deleteMany({username: id }) // deletes user's existing items  
         await User.findByIdAndDelete(id) //to delete user by their passport 
         return res.send({
             success: true,
