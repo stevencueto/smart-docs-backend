@@ -9,6 +9,7 @@ const sendUser = require('../middleware/sendUser')
 const axios = require('axios')
 const mongoose = require('mongoose')
 router.post('/register', userExists,  async (req, res) => {
+    if(req.body.password === undefined || req.body.password === "" ) return catchErr("No Password", res, 'No Password')
     req.body.password = hashedPassword(req.body.password)
     try{
         const user = await User.create(req.body)
