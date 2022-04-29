@@ -43,7 +43,7 @@ app.use(express.json())
 const authRouter = require('./controllers/auth')
 const microRouter = require('./controllers/microServices')
 app.use('/auth', authRouter)
-app.use('/friend', microRouter)
+app.use('/micro', microRouter)
 
 
 

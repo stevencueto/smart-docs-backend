@@ -8,13 +8,28 @@ const verify = require('../middleware/jwt')
 const sendUser = require('../middleware/sendUser')
 const axios = require('axios')
 const mongoose = require('mongoose')
+const newToken = require('../middleware/newToken')
+const makeAvatar = require('../middleware/axiosAvatar')
+
 router.post('/register', userExists,  async (req, res) => {
     if(req.body.password === undefined || req.body.password === "" ) return catchErr("No Password", res, 'No Password')
     req.body.password = hashedPassword(req.body.password)
     try{
+        const newAvatar =makeAvatar(req.body.name)
         const user = await User.create(req.body)
-        return sendUser(user, res)
-        
+        const token = newToken(user)
+        const auth = {
+            headers: {"x-access-token": token} 
+        }
+        const friends = await axios.post("http://localhost:3004/micro/",{"nada": 'todo'},  auth)
+        const axiosAv = await axios.request(newAvatar)
+            if(friends.data.success){
+                const newUser = await User.findByIdAndUpdate(user._id, {friends: mongoose.Types.ObjectId(friends.data.friends), profilePic: axiosAv.data})
+                return sendUser(newUser, res)
+            }else{
+                await User.findByIdAndDelete(user._id)
+                return catchErr(friends.data?.data, res, 'no friends')
+            }
     }catch(err){
         catchErr(err, res, 'Interal Server Error')
     }
@@ -70,28 +85,6 @@ router.put('/newpass', async(req, res) =>{
     }
 })
 
-router.delete('/', async (req, res)=>{
-    try{
-        const possibleUser = await User.findById(req.user._id)
-        const okpass = comparePassword(req.body.password, possibleUser.password)
-        if(okpass){
-            const deleted = await axios.delete("http://localhost:3003/micro/", {
-                headers: { "x-access-token": req.headers["x-access-token"] }})
-            if(deleted.data.success){
-                await User.findByIdAndDelete(req.user._id) //to delete user by their passport 
-                return res.send({
-                    success: true,
-                    data: 'you is gone from my dbs'
-                })
-            }else{
-                return catchErr(deleted.data, res, "deleted")
-            }
-        }
-        return catchErr(okpass, res, "when you remember your password then delete your profile lol")
-    }catch(err){
-        return catchErr(err, res, "Something went wrong with that request")
-    }
-})
 
 
 module.exports = router;

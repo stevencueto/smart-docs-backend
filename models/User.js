@@ -14,9 +14,18 @@ const userSchema = new Schema({
             required: true,
             unique: true
         },
+        name: {
+            type: String,
+            required: true,
+            unique: false
+        },
         password: {
             type: String,
             required: true,
+        },
+        profilePic:{
+            type: String,
+            required: false,
         },
         docs:[ 
             {
@@ -25,6 +34,15 @@ const userSchema = new Schema({
             sparse:true
             }
         ],
+        friends: 
+            {
+            type: Schema.Types.ObjectId,
+            ref: 'Friends',
+            unique: false,
+            sparse:true
+
+            }
+        ,
     }
 )
 
